@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>組分け②テスト対策クイズ</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif; background: #f0f4f8; min-height: 100vh; }
+.container { max-width: 700px; margin: 0 auto; padding: 16px; }
+h1 { text-align: center; color: #1a365d; font-size: 1.4em; margin: 12px 0; }
+
+/* メニュー画面 */
+.menu { display: grid; gap: 12px; }
+.subject-label { font-size: 1.1em; font-weight: bold; color: #2d3748; margin: 8px 0 4px; padding-left: 4px; border-left: 4px solid #4299e1; }
+.subject-label.rika { border-left-color: #48bb78; }
+.unit-btn { padding: 14px 16px; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; text-align: left; transition: transform 0.1s; }
+.unit-btn:hover { transform: scale(1.02); }
+.unit-btn:active { transform: scale(0.98); }
+.unit-btn.shakai { background: #ebf8ff; color: #2b6cb0; border: 2px solid #bee3f8; }
+.unit-btn.rika { background: #f0fff4; color: #276749; border: 2px solid #c6f6d5; }
+.unit-btn .unit-num { font-size: 0.8em; opacity: 0.7; }
+.all-btn { padding: 14px; border: none; border-radius: 10px; font-size: 1.05em; cursor: pointer; background: #4a5568; color: white; font-weight: bold; margin-top: 8px; }
+
+/* クイズ画面 */
+.quiz-screen { display: none; }
+.progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.9em; color: #718096; }
+.progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-bottom: 16px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #4299e1, #48bb78); border-radius: 3px; transition: width 0.3s; }
+.unit-tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75em; margin-bottom: 10px; }
+.unit-tag.shakai { background: #bee3f8; color: #2b6cb0; }
+.unit-tag.rika { background: #c6f6d5; color: #276749; }
+.question-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+.question-text { font-size: 1.05em; line-height: 1.7; margin-bottom: 16px; color: #1a202c; }
+.choices { display: grid; gap: 10px; }
+.choice-btn { padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; background: white; font-size: 0.95em; cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.5; }
+.choice-btn:hover { border-color: #a0aec0; background: #f7fafc; }
+.choice-btn.correct { border-color: #48bb78; background: #f0fff4; color: #276749; }
+.choice-btn.wrong { border-color: #fc8181; background: #fff5f5; color: #9b2c2c; }
+.choice-btn.show-correct { border-color: #48bb78; background: #f0fff4; }
+.choice-btn:disabled { cursor: default; }
+.explanation { display: none; margin-top: 14px; padding: 14px; background: #fffff0; border: 1px solid #fefcbf; border-radius: 10px; font-size: 0.9em; line-height: 1.7; color: #744210; }
+.next-btn { display: none; width: 100%; padding: 14px; border: none; border-radius: 10px; background: #4299e1; color: white; font-size: 1em; font-weight: bold; cursor: pointer; margin-top: 12px; }
+.next-btn:hover { background: #3182ce; }
+
+/* 結果画面 */
+.result-screen { display: none; text-align: center; }
+.result-card { background: white; border-radius: 14px; padding: 30px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+.score-big { font-size: 3em; font-weight: bold; color: #2d3748; }
+.score-label { font-size: 1em; color: #718096; margin-bottom: 16px; }
+.result-msg { font-size: 1.1em; margin: 16px 0; }
+.wrong-list { text-align: left; margin: 16px 0; }
+.wrong-item { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-size: 0.9em; line-height: 1.6; }
+.wrong-item .q { font-weight: bold; color: #c53030; }
+.wrong-item .a { color: #276749; margin-top: 4px; }
+.retry-btn, .back-btn { padding: 14px 24px; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; margin: 6px; }
+.retry-btn { background: #4299e1; color: white; }
+.back-btn { background: #e2e8f0; color: #4a5568; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📝 組分け② テスト対策クイズ</h1>
+
+<div class="menu" id="menu">
+  <div class="subject-label">📘 社会</div>
+  <button class="unit-btn shakai" onclick="startQuiz('shakai6')"><span class="unit-num">第6回</span> 公害と環境問題 ～日本の工業(3)～</button>
+  <button class="unit-btn shakai" onclick="startQuiz('shakai7')"><span class="unit-num">第7回</span> 結びつく人と物と情報</button>
+  <button class="unit-btn shakai" onclick="startQuiz('shakai8')"><span class="unit-num">第8回</span> 日本と世界の結びつき</button>
+  <button class="unit-btn shakai" onclick="startQuiz('shakai9')"><span class="unit-num">第9回</span> 日本のすがた</button>
+  <div class="subject-label rika">🔬 理科</div>
+  <button class="unit-btn rika" onclick="startQuiz('rika6')"><span class="unit-num">第6回</span> 気象の観測</button>
+  <button class="unit-btn rika" onclick="startQuiz('rika7')"><span class="unit-num">第7回</span> 天気の変化</button>
+  <button class="unit-btn rika" onclick="startQuiz('rika8')"><span class="unit-num">第8回</span> てこと輪軸</button>
+  <button class="unit-btn rika" onclick="startQuiz('rika9')"><span class="unit-num">第9回</span> 植物のつくり</button>
+  <button class="all-btn" onclick="startQuiz('all')">🎯 全単元ランダム（20問）</button>
+</div>
+
+<div class="quiz-screen" id="quizScreen">
+  <div class="progress">
+    <span id="qNum"></span>
+    <span id="scoreDisplay"></span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="question-card">
+    <span class="unit-tag" id="unitTag"></span>
+    <div class="question-text" id="questionText"></div>
+    <div class="choices" id="choices"></div>
+    <div class="explanation" id="explanation"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">次の問題 →</button>
+  </div>
+</div>
+
+<div class="result-screen" id="resultScreen">
+  <div class="result-card">
+    <div class="score-big" id="finalScore"></div>
+    <div class="score-label">正解率</div>
+    <div class="result-msg" id="resultMsg"></div>
+  </div>
+  <div class="wrong-list" id="wrongList"></div>
+  <button class="retry-btn" onclick="retryWrong()" id="retryBtn">❌ 間違えた問題をもう一度</button>
+  <button class="back-btn" onclick="backToMenu()">🏠 メニューに戻る</button>
+</div>
+</div>
+
+<script>
+const QUESTIONS = {
+
+// ========================================
+// 社会 第6回: 公害と環境問題 ～日本の工業(3)～
+// ========================================
+shakai6: [
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '四大公害病のうち、新潟県の阿賀野川流域で発生した病気は何ですか？',
+  choices: ['水俣病', '新潟水俣病', 'イタイイタイ病', '四日市ぜんそく'],
+  answer: 1,
+  explanation: '新潟水俣病は、阿賀野川流域で有機水銀が原因で発生しました。熊本県の水俣病と区別して「第二水俣病」とも呼ばれます。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: 'イタイイタイ病の原因物質は何ですか？',
+  choices: ['有機水銀', 'カドミウム', '亜硫酸ガス', 'ダイオキシン'],
+  answer: 1,
+  explanation: 'イタイイタイ病は富山県の神通川流域で発生し、カドミウムが原因です。骨がもろくなり、激しい痛みが出る病気です。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '四日市ぜんそくの原因は何ですか？',
+  choices: ['有機水銀', 'カドミウム', '亜硫酸ガス（硫黄酸化物）', '窒素酸化物'],
+  answer: 2,
+  explanation: '四日市ぜんそくは三重県四日市市の石油化学コンビナートから出た亜硫酸ガス（硫黄酸化物）が原因です。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '1967年に制定された、公害を防ぐための基本的な法律は何ですか？',
+  choices: ['環境基本法', '公害対策基本法', '大気汚染防止法', '水質汚濁防止法'],
+  answer: 1,
+  explanation: '公害対策基本法は1967年に制定されました。1993年に環境基本法に発展しました。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '環境省が設置されたのは何年ですか？',
+  choices: ['1967年', '1971年', '1993年', '2001年'],
+  answer: 3,
+  explanation: '2001年に環境庁が環境省に格上げされました。環境庁は1971年に設置されています。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '地球温暖化の主な原因とされる気体は何ですか？',
+  choices: ['酸素', '窒素', '二酸化炭素', 'オゾン'],
+  answer: 2,
+  explanation: '二酸化炭素などの温室効果ガスが増えることで地球温暖化が進みます。化石燃料の使用が主な原因です。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '3R（スリーアール）に含まれないものはどれですか？',
+  choices: ['リデュース（減らす）', 'リユース（再使用）', 'リサイクル（再資源化）', 'リペア（修理）'],
+  answer: 3,
+  explanation: '3Rはリデュース（ごみを減らす）、リユース（くり返し使う）、リサイクル（資源として再利用する）の3つです。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '酸性雨の主な原因となる物質はどれですか？',
+  choices: ['二酸化炭素', '硫黄酸化物・窒素酸化物', 'フロンガス', 'メタンガス'],
+  answer: 1,
+  explanation: '酸性雨は、工場や自動車から出る硫黄酸化物や窒素酸化物が雨にとけこんで発生します。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: 'オゾン層を破壊する物質として知られるのはどれですか？',
+  choices: ['二酸化炭素', 'メタン', 'フロンガス', '一酸化炭素'],
+  answer: 2,
+  explanation: 'フロンガスはかつて冷蔵庫やエアコンの冷媒に使われていましたが、オゾン層を破壊するため規制されています。'
+},
+{
+  subject: '社会', unit: '第6回 公害と環境問題',
+  question: '水俣病が発生した県はどこですか？',
+  choices: ['三重県', '富山県', '新潟県', '熊本県'],
+  answer: 3,
+  explanation: '水俣病は熊本県水俣市で発生しました。チッソという化学工場から出た有機水銀が原因です。'
+},
+],
+
+// ========================================
+// 社会 第7回: 結びつく人と物と情報
+// ========================================
+shakai7: [
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '日本で最も貨物の輸送量が多い輸送手段はどれですか？',
+  choices: ['鉄道', '自動車（トラック）', '船（内航海運）', '航空機'],
+  answer: 1,
+  explanation: '国内の貨物輸送はトラック（自動車）が最も多く、全体の約9割をしめています。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '東海道新幹線が開通したのは何年ですか？',
+  choices: ['1960年', '1964年', '1970年', '1972年'],
+  answer: 1,
+  explanation: '東海道新幹線は1964年（昭和39年）、東京オリンピックの年に東京〜新大阪間で開通しました。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '本州と四国を結ぶルートは全部でいくつありますか？',
+  choices: ['1つ', '2つ', '3つ', '4つ'],
+  answer: 2,
+  explanation: '本州四国連絡橋は3ルートあります。神戸〜鳴門、児島〜坂出（瀬戸大橋）、尾道〜今治（しまなみ海道）です。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '青函トンネルが結んでいるのはどことどこですか？',
+  choices: ['本州と四国', '本州と北海道', '本州と九州', '北海道と樺太'],
+  answer: 1,
+  explanation: '青函トンネルは青森県と北海道を結ぶ海底トンネルで、1988年に開通しました。北海道新幹線も通っています。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '日本で旅客の輸送量が最も多い輸送手段はどれですか？',
+  choices: ['鉄道', '自動車', '船', '航空機'],
+  answer: 1,
+  explanation: '旅客輸送では自動車（バス・自家用車）が最も多くなっています。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '情報通信技術のことをアルファベット3文字で何といいますか？',
+  choices: ['GPS', 'ICT', 'LED', 'IoT'],
+  answer: 1,
+  explanation: 'ICTはInformation and Communication Technology（情報通信技術）の略です。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '瀬戸大橋が結んでいるのはどの県とどの県ですか？',
+  choices: ['兵庫県と徳島県', '岡山県と香川県', '広島県と愛媛県', '山口県と大分県'],
+  answer: 1,
+  explanation: '瀬戸大橋は岡山県倉敷市児島と香川県坂出市を結ぶ橋で、1988年に開通しました。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '関西国際空港がある都道府県はどこですか？',
+  choices: ['兵庫県', '大阪府', '京都府', '奈良県'],
+  answer: 1,
+  explanation: '関西国際空港は大阪府泉佐野市沖の人工島に建設された空港で、1994年に開港しました。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: '高速道路の料金所で止まらずに通過できるシステムを何といいますか？',
+  choices: ['GPS', 'ETC', 'ICT', 'POS'],
+  answer: 1,
+  explanation: 'ETCはElectronic Toll Collection System（電子料金収受システム）の略で、料金所をノンストップで通過できます。'
+},
+{
+  subject: '社会', unit: '第7回 結びつく人と物と情報',
+  question: 'しまなみ海道が結んでいるのはどの県とどの県ですか？',
+  choices: ['岡山県と香川県', '兵庫県と徳島県', '広島県と愛媛県', '山口県と大分県'],
+  answer: 2,
+  explanation: 'しまなみ海道（西瀬戸自動車道）は広島県尾道市と愛媛県今治市を結び、自転車でも渡れます。'
+},
+],
+
+// ========================================
+// 社会 第8回: 日本と世界の結びつき
+// ========================================
+shakai8: [
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本の輸出額が最も多い品目はどれですか？',
+  choices: ['鉄鋼', '自動車', '半導体', '食料品'],
+  answer: 1,
+  explanation: '日本の輸出品目で最も多いのは自動車です。機械類全体で輸出の大部分をしめています。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本の輸入額が最も多い品目はどれですか？',
+  choices: ['自動車', '衣類', '原油・石油製品', '食料品'],
+  answer: 2,
+  explanation: '日本は原油（石油）の輸入額が最も多く、そのほとんどを中東地域から輸入しています。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本の貿易相手国として、輸出入の総額が最も多い国はどこですか？',
+  choices: ['アメリカ', '中国', '韓国', 'オーストラリア'],
+  answer: 1,
+  explanation: '日本の最大の貿易相手国は中国です。輸出入の総額で見ると中国が1位となっています。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '輸入額が輸出額を上回っている状態を何といいますか？',
+  choices: ['貿易黒字', '貿易赤字', '経常黒字', '円高'],
+  answer: 1,
+  explanation: '輸入額＞輸出額の状態を貿易赤字といいます。逆に輸出額＞輸入額を貿易黒字といいます。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本が石油を最も多く輸入している地域はどこですか？',
+  choices: ['東南アジア', '中東（西アジア）', 'アフリカ', '中央アジア'],
+  answer: 1,
+  explanation: '日本の原油輸入の約9割は中東（西アジア）からです。サウジアラビア、UAE、クウェートなどが主な輸入先です。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本の食料自給率（カロリーベース）はおよそ何％ですか？',
+  choices: ['約20％', '約38％', '約55％', '約70％'],
+  answer: 1,
+  explanation: '日本の食料自給率（カロリーベース）は約38％で、先進国の中でも低い水準です。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本が小麦を最も多く輸入している国はどこですか？',
+  choices: ['オーストラリア', 'カナダ', 'アメリカ', 'フランス'],
+  answer: 2,
+  explanation: '日本の小麦の最大の輸入先はアメリカです。カナダ、オーストラリアが続きます。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '加工貿易とはどのような貿易ですか？',
+  choices: ['農産物を輸出する貿易', '原料を輸入し、製品にして輸出する貿易', '完成品を輸入する貿易', 'サービスを輸出する貿易'],
+  answer: 1,
+  explanation: '加工貿易は原料や燃料を輸入し、工業製品に加工して輸出する貿易のしかたです。日本はかつてこの形が中心でした。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本が鉄鉱石を最も多く輸入している国はどこですか？',
+  choices: ['ブラジル', 'オーストラリア', '中国', 'インド'],
+  answer: 1,
+  explanation: '日本の鉄鉱石の最大の輸入先はオーストラリアです。ブラジルが2位です。'
+},
+{
+  subject: '社会', unit: '第8回 日本と世界の結びつき',
+  question: '日本企業が海外に工場を建てて生産することで、国内の工場が減る問題を何といいますか？',
+  choices: ['貿易摩擦', '産業の空洞化', 'デフレーション', '過疎化'],
+  answer: 1,
+  explanation: '産業の空洞化は、企業が海外に生産拠点を移すことで国内の工場や雇用が減少する現象です。'
+},
+],
+
+// ========================================
+// 社会 第9回: 日本のすがた
+// ========================================
+shakai9: [
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の国土面積はおよそ何万km²ですか？',
+  choices: ['約18万km²', '約28万km²', '約38万km²', '約48万km²'],
+  answer: 2,
+  explanation: '日本の国土面積は約38万km²です。世界で61番目の大きさです。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の最北端の島はどこですか？',
+  choices: ['与那国島', '沖ノ鳥島', '南鳥島', '択捉島'],
+  answer: 3,
+  explanation: '日本の最北端は択捉島（えとろふとう）です。北方領土の一つで、現在はロシアが占拠しています。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の最南端の島はどこですか？',
+  choices: ['沖ノ鳥島', '南鳥島', '与那国島', '硫黄島'],
+  answer: 0,
+  explanation: '日本の最南端は沖ノ鳥島です。東京都に属し、サンゴ礁の島で護岸工事で守られています。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の排他的経済水域（EEZ）の広さは世界で何番目ですか？',
+  choices: ['第1位', '第3位', '第6位', '第10位'],
+  answer: 2,
+  explanation: '日本のEEZは世界第6位の広さです。国土面積は小さいですが、島が多いため広い海域を持っています。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の最東端の島はどこですか？',
+  choices: ['沖ノ鳥島', '南鳥島', '与那国島', '択捉島'],
+  answer: 1,
+  explanation: '日本の最東端は南鳥島（みなみとりしま）です。東京都小笠原村に属しています。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の最西端の島はどこですか？',
+  choices: ['沖ノ鳥島', '南鳥島', '与那国島', '択捉島'],
+  answer: 2,
+  explanation: '日本の最西端は与那国島（よなぐにじま）です。沖縄県に属し、台湾に近い位置にあります。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '北方領土に含まれない島はどれですか？',
+  choices: ['択捉島', '国後島', '色丹島', '竹島'],
+  answer: 3,
+  explanation: '北方領土は択捉島・国後島・色丹島・歯舞群島の4島です。竹島は島根県に属し、韓国との間で問題になっています。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の都道府県の数はいくつですか？',
+  choices: ['43', '45', '47', '50'],
+  answer: 2,
+  explanation: '日本には1都1道2府43県の合計47都道府県があります。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '日本の標準時子午線は東経何度ですか？',
+  choices: ['東経130度', '東経135度', '東経140度', '東経145度'],
+  answer: 1,
+  explanation: '日本の標準時子午線は東経135度で、兵庫県明石市を通っています。'
+},
+{
+  subject: '社会', unit: '第9回 日本のすがた',
+  question: '沖ノ鳥島が重要な理由として最もふさわしいものはどれですか？',
+  choices: ['漁業がさかんだから', '排他的経済水域を守るため', '軍事基地があるから', '観光地として有名だから'],
+  answer: 1,
+  explanation: '沖ノ鳥島は日本の最南端で、この島があることで広大な排他的経済水域（EEZ）を確保できます。水没を防ぐため護岸工事が行われています。'
+},
+],
+
+// ========================================
+// 理科 第6回: 気象の観測
+// ========================================
+rika6: [
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '気温を正しくはかるとき、温度計は地面から何mの高さに置きますか？',
+  choices: ['約0.5m', '約1.2〜1.5m', '約2.0m', '約3.0m'],
+  answer: 1,
+  explanation: '気温は地面から約1.2〜1.5mの高さで、直射日光が当たらない風通しのよい場所ではかります。百葉箱の中ではかるのが正式です。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '百葉箱の扉はどの方角に向いていますか？',
+  choices: ['東', '西', '南', '北'],
+  answer: 3,
+  explanation: '百葉箱の扉は北向きです。扉を開けたときに直射日光が中に入らないようにするためです。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '風向が「北西」とは、どの方角から風がふいてくることですか？',
+  choices: ['北西から', '南東から', '北東から', '南西から'],
+  answer: 0,
+  explanation: '風向は風がふいてくる方角を表します。「北西の風」は北西から南東に向かってふく風です。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '雲量が0〜1のときの天気は何ですか？',
+  choices: ['快晴', '晴れ', 'くもり', '雨'],
+  answer: 0,
+  explanation: '雲量0〜1は快晴、2〜8は晴れ、9〜10はくもりです。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '湿度を測る器具はどれですか？',
+  choices: ['気圧計', '乾湿計', '雨量計', '風速計'],
+  answer: 1,
+  explanation: '乾湿計は乾球温度計と湿球温度計の2本の温度計を使って湿度を求めます。乾球と湿球の温度差が大きいほど湿度が低いです。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '雲量が9〜10のときの天気は何ですか？',
+  choices: ['快晴', '晴れ', 'くもり', '雨'],
+  answer: 2,
+  explanation: '雲量9〜10はくもりです。空の大部分が雲でおおわれている状態です。雨が降っているかどうかは雲量とは別です。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '気圧の単位は何ですか？',
+  choices: ['ルクス', 'ヘクトパスカル', 'デシベル', 'ミリバール'],
+  answer: 1,
+  explanation: '気圧の単位はヘクトパスカル（hPa）です。1気圧は約1013hPaです。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '百葉箱が白くぬられている理由はどれですか？',
+  choices: ['目立つようにするため', '日光を反射して中の温度が上がりにくくするため', '雨に強くするため', '虫がつかないようにするため'],
+  answer: 1,
+  explanation: '白色は日光（放射熱）を反射しやすいので、箱の中の温度が日光で上がるのを防ぎます。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '風力0とはどのような状態ですか？',
+  choices: ['煙がまっすぐ上がる（無風）', '木の葉が動く', '旗がはためく', '小枝が折れる'],
+  answer: 0,
+  explanation: '風力0は煙がまっすぐ上がる無風状態です。風力は0〜12の13段階で表します。'
+},
+{
+  subject: '理科', unit: '第6回 気象の観測',
+  question: '乾湿計で、乾球と湿球の温度差が大きいとき、湿度はどうなっていますか？',
+  choices: ['湿度が高い', '湿度が低い', '湿度は変わらない', '測定できない'],
+  answer: 1,
+  explanation: '湿球は水が蒸発するときに熱をうばわれて温度が下がります。空気が乾燥しているほど蒸発が盛んで温度差が大きくなるので、湿度は低いです。'
+},
+],
+
+// ========================================
+// 理科 第7回: 天気の変化
+// ========================================
+rika7: [
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '日本の天気は、ふつうどの方角からどの方角へ変わっていきますか？',
+  choices: ['東から西へ', '西から東へ', '南から北へ', '北から南へ'],
+  answer: 1,
+  explanation: '日本の上空には偏西風（西風）がふいているため、天気は西から東へ変わっていきます。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '寒冷前線が通過した後の天気の変化として正しいものはどれですか？',
+  choices: ['気温が上がり、天気が回復する', '気温が下がり、天気が回復する', '気温が上がり、雨が続く', '気温が下がり、雨が続く'],
+  answer: 1,
+  explanation: '寒冷前線の通過後は、冷たい空気に入れかわるため気温が下がり、短時間の強い雨のあと天気が回復します。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '温暖前線付近ではどのような雨がふりますか？',
+  choices: ['短時間の強い雨', '広い範囲でおだやかな雨が長く続く', '雷をともなう激しい雨', 'ひょうが降る'],
+  answer: 1,
+  explanation: '温暖前線では暖かい空気が冷たい空気の上にゆるやかにはい上がるため、広い範囲でおだやかな雨が長時間続きます。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '台風の中心付近の風のふき方として正しいものはどれですか？',
+  choices: ['時計回りにふき出す', '反時計回りにふきこむ', '時計回りにふきこむ', '反時計回りにふき出す'],
+  answer: 1,
+  explanation: '北半球では、台風の風は中心に向かって反時計回り（左回り）にふきこみます。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '梅雨の時期に日本付近に停滞する前線を何といいますか？',
+  choices: ['寒冷前線', '温暖前線', '梅雨前線（停滞前線）', '閉塞前線'],
+  answer: 2,
+  explanation: '梅雨前線は、北のオホーツク海高気圧と南の太平洋高気圧の間にできる停滞前線です。6月〜7月ごろに日本付近に停滞します。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '冬に日本海側で雪が多くふる原因として正しいものはどれですか？',
+  choices: ['太平洋からの暖かい風が山にぶつかるから', '大陸からの冷たい風が日本海の水蒸気をふくんで山にぶつかるから', '台風が日本海側を通るから', '梅雨前線が停滞するから'],
+  answer: 1,
+  explanation: '冬は大陸から冷たい北西の季節風がふき、日本海を渡るときに水蒸気をふくみ、山脈にぶつかって日本海側に大雪を降らせます。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '天気図で、等圧線の間隔がせまいところはどのような状態ですか？',
+  choices: ['風が弱い', '風が強い', '気温が高い', '湿度が高い'],
+  answer: 1,
+  explanation: '等圧線の間隔がせまいほど気圧の差が大きく、風が強くふきます。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '高気圧の中心付近の天気はどうなりますか？',
+  choices: ['雨が降りやすい', '晴れやすい', 'くもりやすい', '雷が起きやすい'],
+  answer: 1,
+  explanation: '高気圧の中心では空気が下降するため雲ができにくく、晴れやすくなります。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '低気圧の中心付近の風のふき方として正しいものはどれですか？',
+  choices: ['時計回りにふき出す', '反時計回りにふきこむ', '時計回りにふきこむ', '風はふかない'],
+  answer: 1,
+  explanation: '北半球の低気圧では、風は中心に向かって反時計回りにふきこみます。高気圧は時計回りにふき出します。'
+},
+{
+  subject: '理科', unit: '第7回 天気の変化',
+  question: '春と秋に日本付近を西から東へ交互に通過するものは何ですか？',
+  choices: ['台風と高気圧', '移動性高気圧と低気圧（温帯低気圧）', '寒冷前線と温暖前線', '梅雨前線と秋雨前線'],
+  answer: 1,
+  explanation: '春と秋は、移動性高気圧と温帯低気圧が交互に西から東へ通過するため、天気が周期的に変わります。'
+},
+],
+
+// ========================================
+// 理科 第8回: てこと輪軸
+// ========================================
+rika8: [
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: 'てこがつり合う条件はどれですか？',
+  choices: ['力点の力＝作用点の力', '支点からの距離が等しい', '力×支点からの距離が左右で等しい', '力点が支点に近い'],
+  answer: 2,
+  explanation: 'てこのつり合いの法則は「おもりの重さ×支点からの距離」が左右で等しいときにつり合います。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: '支点から左に30cmのところに60gのおもりをつるしたとき、支点から右に20cmのところに何gのおもりをつるすとつり合いますか？',
+  choices: ['40g', '60g', '90g', '120g'],
+  answer: 2,
+  explanation: '60g×30cm＝□g×20cm → □＝1800÷20＝90g です。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: 'てこで、小さな力で大きなものを動かすには、力点をどうすればよいですか？',
+  choices: ['支点に近づける', '支点から遠ざける', '作用点に近づける', '作用点と同じ位置にする'],
+  answer: 1,
+  explanation: '力点を支点から遠ざけるほど、小さな力で大きなものを動かせます。逆に作用点は支点に近いほど有利です。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: '輪軸で、大きい輪（半径20cm）に力を加えて小さい軸（半径5cm）で物を持ち上げるとき、力は何分の1になりますか？',
+  choices: ['2分の1', '3分の1', '4分の1', '5分の1'],
+  answer: 2,
+  explanation: '輪軸では「輪の半径×輪にかかる力＝軸の半径×軸にかかる力」です。20÷5＝4なので、力は4分の1になります。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: '次のうち、てこを利用した道具はどれですか？',
+  choices: ['ドライバー', 'くぎぬき', '滑車', 'ばね'],
+  answer: 1,
+  explanation: 'くぎぬきはてこの原理を利用しています。支点（くぎぬきの先端が板に当たるところ）、力点（手で持つところ）、作用点（くぎに当たるところ）があります。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: '上皿てんびんで、はかりたいものはどちらの皿にのせますか？',
+  choices: ['左の皿', '右の皿', 'どちらでもよい', '重い方の皿'],
+  answer: 0,
+  explanation: '上皿てんびんでは、はかりたいものを左の皿に、分銅を右の皿にのせます。分銅は重いものから順にのせていきます。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: '次のうち、輪軸を利用した道具はどれですか？',
+  choices: ['はさみ', 'ドアノブ', 'ピンセット', 'くぎぬき'],
+  answer: 1,
+  explanation: 'ドアノブは輪軸の原理を利用しています。大きなノブ（輪）を回すと、小さな軸が回って少ない力でドアを開けられます。水道のじゃ口も同じです。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: 'てこの実験で、左うでの3の位置に20gのおもりを2個つるしました。右うでの2の位置に何gのおもりをつるすとつり合いますか？',
+  choices: ['40g', '50g', '60g', '80g'],
+  answer: 2,
+  explanation: '左：20g×2個×3＝120。右：□g×2＝120 → □＝60g です。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: 'はさみの支点・力点・作用点の順番として正しいものはどれですか？',
+  choices: ['力点→支点→作用点', '支点→力点→作用点', '作用点→支点→力点', '力点→作用点→支点'],
+  answer: 0,
+  explanation: 'はさみは、指で持つところ（力点）→ねじの部分（支点）→紙を切るところ（作用点）の順です。'
+},
+{
+  subject: '理科', unit: '第8回 てこと輪軸',
+  question: 'ピンセットの支点・力点・作用点の順番として正しいものはどれですか？',
+  choices: ['力点→支点→作用点', '支点→力点→作用点', '作用点→力点→支点', '支点→作用点→力点'],
+  answer: 3,
+  explanation: 'ピンセットは根元のつなぎ目が支点、指でおさえる部分が力点、先端のものをつまむ部分が作用点です。支点→力点→作用点の順に並んでいます。'
+},
+],
+
+// ========================================
+// 理科 第9回: 植物のつくり
+// ========================================
+rika9: [
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '植物が光合成を行う場所はどこですか？',
+  choices: ['根', '茎', '葉の葉緑体', '花'],
+  answer: 2,
+  explanation: '光合成は葉の細胞にある葉緑体で行われます。光のエネルギーを使って、二酸化炭素と水からデンプンと酸素をつくります。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '光合成に必要なものの組み合わせとして正しいものはどれですか？',
+  choices: ['酸素と水と光', '二酸化炭素と水と光', '酸素と二酸化炭素と光', '窒素と水と光'],
+  answer: 1,
+  explanation: '光合成は「二酸化炭素＋水→（光のエネルギー）→デンプン＋酸素」です。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '葉の裏側に多くある、気体の出入り口を何といいますか？',
+  choices: ['維管束', '気孔', '葉脈', '師管'],
+  answer: 1,
+  explanation: '気孔は葉の裏側に多くあり、二酸化炭素や酸素、水蒸気の出入り口です。2つの三日月形の孔辺細胞に囲まれています。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '根から吸い上げた水や養分が通る管を何といいますか？',
+  choices: ['師管', '道管', '気孔', '維管束'],
+  answer: 1,
+  explanation: '道管は根から吸い上げた水や水にとけた養分（無機養分）が通る管です。茎の内側にあります。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '葉でつくられた養分（デンプンなど）が通る管を何といいますか？',
+  choices: ['道管', '師管', '気孔', '根毛'],
+  answer: 1,
+  explanation: '師管は葉でつくられた養分（デンプンが水にとけやすい糖に変わったもの）が通る管です。茎の外側にあります。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '植物が水蒸気を葉から出すはたらきを何といいますか？',
+  choices: ['光合成', '呼吸', '蒸散', '吸水'],
+  answer: 2,
+  explanation: '蒸散は、根から吸い上げた水が気孔から水蒸気として出ていくはたらきです。蒸散によって水を吸い上げる力が生まれます。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '双子葉植物の茎の維管束の並び方はどうなっていますか？',
+  choices: ['ばらばらに散らばっている', '輪のように並んでいる', '中心に集まっている', '表面にだけある'],
+  answer: 1,
+  explanation: '双子葉植物（アサガオ、ヒマワリなど）の維管束は輪のように規則正しく並んでいます。単子葉植物はばらばらに散らばっています。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '単子葉植物の根のつくりはどうなっていますか？',
+  choices: ['太い主根と細い側根', 'ひげ根', '球根', '根がない'],
+  answer: 1,
+  explanation: '単子葉植物（イネ、トウモロコシなど）の根はひげ根です。双子葉植物は太い主根と細い側根からなります。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '葉にデンプンがあるかどうかを調べるために使う液は何ですか？',
+  choices: ['BTB液', 'ヨウ素液', '石灰水', 'フェノールフタレイン液'],
+  answer: 1,
+  explanation: 'ヨウ素液はデンプンに反応して青紫色に変わります。光合成でデンプンがつくられたかどうかを確認できます。'
+},
+{
+  subject: '理科', unit: '第9回 植物のつくり',
+  question: '植物の呼吸について正しいものはどれですか？',
+  choices: ['昼だけ行う', '夜だけ行う', '一日中行う', '光合成のときだけ行う'],
+  answer: 2,
+  explanation: '植物の呼吸は一日中（昼も夜も）行われています。酸素を取り入れて二酸化炭素を出します。光合成は光があるときだけです。'
+},
+],
+
+};
+
+// クイズアプリ ロジック
+let currentQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let wrongAnswers = [];
+let answered = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz(unitKey) {
+  let qs;
+  if (unitKey === 'all') {
+    qs = shuffle(Object.values(QUESTIONS).flat()).slice(0, 20);
+  } else {
+    qs = shuffle(QUESTIONS[unitKey] || []);
+  }
+  currentQuestions = qs;
+  currentIndex = 0;
+  score = 0;
+  wrongAnswers = [];
+  answered = false;
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  showQuestion();
+}
+
+function showQuestion() {
+  answered = false;
+  const q = currentQuestions[currentIndex];
+  const total = currentQuestions.length;
+  document.getElementById('qNum').textContent = `${currentIndex + 1} / ${total}`;
+  document.getElementById('scoreDisplay').textContent = `⭕ ${score}`;
+  document.getElementById('progressFill').style.width = `${((currentIndex) / total) * 100}%`;
+
+  const tag = document.getElementById('unitTag');
+  tag.textContent = q.unit;
+  tag.className = 'unit-tag ' + (q.subject === '理科' ? 'rika' : 'shakai');
+
+  document.getElementById('questionText').textContent = q.question;
+  document.getElementById('explanation').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
+
+  // 選択肢をシャッフル（正解インデックスも追跡）
+  const indices = q.choices.map((_, i) => i);
+  const shuffled = shuffle(indices);
+
+  shuffled.forEach(origIdx => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = q.choices[origIdx];
+    btn.onclick = () => selectAnswer(btn, origIdx, q);
+    choicesDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(btn, selectedIdx, q) {
+  if (answered) return;
+  answered = true;
+
+  const buttons = document.querySelectorAll('.choice-btn');
+  buttons.forEach(b => b.disabled = true);
+
+  if (selectedIdx === q.answer) {
+    btn.classList.add('correct');
+    score++;
+  } else {
+    btn.classList.add('wrong');
+    // 正解を表示
+    buttons.forEach(b => {
+      if (b.textContent === q.choices[q.answer]) {
+        b.classList.add('show-correct');
+      }
+    });
+    wrongAnswers.push(q);
+  }
+
+  document.getElementById('scoreDisplay').textContent = `⭕ ${score}`;
+
+  const exp = document.getElementById('explanation');
+  exp.textContent = '💡 ' + q.explanation;
+  exp.style.display = 'block';
+
+  document.getElementById('nextBtn').style.display = 'block';
+  document.getElementById('nextBtn').textContent =
+    currentIndex < currentQuestions.length - 1 ? '次の問題 →' : '結果を見る 🎉';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex < currentQuestions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+
+  const total = currentQuestions.length;
+  const pct = Math.round((score / total) * 100);
+  document.getElementById('finalScore').textContent = `${score} / ${total}（${pct}%）`;
+
+  let msg = '';
+  if (pct === 100) msg = '🎉 パーフェクト！すごい！';
+  else if (pct >= 80) msg = '👏 よくできました！あと少し！';
+  else if (pct >= 60) msg = '📚 まあまあ！復習して完璧にしよう！';
+  else msg = '💪 もう一度しっかり復習しよう！';
+  document.getElementById('resultMsg').textContent = msg;
+
+  const wrongDiv = document.getElementById('wrongList');
+  wrongDiv.innerHTML = '';
+  if (wrongAnswers.length > 0) {
+    wrongAnswers.forEach(q => {
+      const div = document.createElement('div');
+      div.className = 'wrong-item';
+      div.innerHTML = `<div class="q">❌ ${q.question}</div><div class="a">→ 正解: ${q.choices[q.answer]}</div>`;
+      wrongDiv.appendChild(div);
+    });
+    document.getElementById('retryBtn').style.display = 'inline-block';
+  } else {
+    document.getElementById('retryBtn').style.display = 'none';
+  }
+}
+
+function retryWrong() {
+  currentQuestions = shuffle(wrongAnswers);
+  currentIndex = 0;
+  score = 0;
+  wrongAnswers = [];
+  answered = false;
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  showQuestion();
+}
+
+function backToMenu() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('menu').style.display = 'grid';
+}
+
+</script>
+</body>
+</html>
